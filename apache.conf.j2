@@ -1,0 +1,32 @@
+<VirtualHost *:{{ http_port }}>
+    ServerAdmin webmaster@localhost
+#    ServerName  domain 
+#    ServerAlias www.domain 
+    DocumentRoot /var/www/html
+    ErrorLog ${APACHE_LOG_DIR}/error.log
+    CustomLog ${APACHE_LOG_DIR}/access.log combined
+
+<Directory /var/www/html>
+    Options Indexes FollowSymLinks MultiViews
+    AllowOverride All
+    Require all granted
+</Directory>
+
+</VirtualHost>
+
+# Uncomment below lines for https configuration.
+
+#<VirtualHost *:443>
+#DocumentRoot /var/www/html
+#SSLEngine on
+#SSLCertificateFile /opt/ssl/ssl/file.crt
+#SSLCertificateKeyFile  /opt/ssl/ssl/file-key.txt
+#SSLCertificateChainFile  /opt/ssl/ssl/file.ca-bundle
+
+#<Directory /var/www/html>
+#    Options Indexes FollowSymLinks MultiViews
+#    AllowOverride All
+#    Require all granted
+#</Directory>
+
+#</VirtualHost>

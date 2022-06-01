@@ -1,0 +1,48 @@
+---
+- name: setting up my.cnf file for handling SQL access
+  template:
+    src: my.cnf.j2
+    dest: /etc/mysql/my.cnf
+    owner: mysql
+    group: mysql
+    mode: 0644
+  become: true
+
+- name: Ensure mysql is restarted
+  action: service name=mysql state=restarted
+  become: true
+
+
+# Update the root password immediately. This should come first as ordering is very important
+
+- name: Updating mysql root password for all root accounts
+  mysql_user:
+   login_unix_socket: /var/run/mysqld/mysqld.sock       
+   name: root
+   host: "{{ item }}"
+   password: "{{ default_mysql_root_password }}"
+   login_user: root
+   login_password: "{{ default_mysql_root_password }}"
+   check_implicit_admin: yes
+   priv: "*.*:ALL,GRANT"
+  with_items:
+    - localhost
+
+# Create our own user aside from the root password
+# here our root password and new user created will have the same password
+# Grant the privilege for the newly created user
+- name: Creating mysql default user
+  mysql_user:
+   name: "{{ default_mysql_user_login }}"
+   host: "{{ item }}"
+   password: "{{ default_mysql_user_password }}"
+   login_user: root
+   login_password: "{{ default_mysql_root_password }}"
+   login_unix_socket: /var/run/mysqld/mysqld.sock
+   check_implicit_admin: yes
+   priv: "*.*:ALL,GRANT"
+  with_items:
+    - "%"
+    - localhost
+
+- shell: echo " MYSQL root and {{ default_mysql_user_password }} password is up to date. You can check variable file for details." 

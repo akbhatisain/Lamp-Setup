@@ -1,0 +1,91 @@
+---
+# configure phpmyadmin with apache
+- name: Ensure phpMyAdmin config file is included in Apache config.
+  lineinfile:
+    dest: /etc/apache2/apache2.conf
+    state: present
+    regexp: "^Include.+phpmyadmin.+$"
+    line: "Include /etc/phpmyadmin/apache.conf"
+    #insertafter: "EOF"
+    mode: 0644 
+
+
+- name: Add default username and password for MySQL connection.
+  lineinfile: >
+    dest={{ phpmyadmin_config_file }}
+    state=present
+    regexp="^.+\['{{ item.key }}'\].+$"
+    line="$cfg['Servers'][$i]['{{ item.key }}'] = '{{ item.value }}';"
+    insertbefore="^\?>"
+    mode=0644
+  with_items:
+    - key: host
+      value: "{{ phpmyadmin_mysql_host }}"
+    - key: port
+      value: "{{ phpmyadmin_mysql_port }}"
+    - key: connect_type
+      value: "{{ phpmyadmin_mysql_connect_type }}"
+    - key: user
+      value: "{{ phpmyadmin_mysql_user }}"
+    - key: password
+      value: "{{ phpmyadmin_mysql_password }}"
+- name: Adding permission in phpmyadmin conf file
+  lineinfile:
+    dest: /etc/phpmyadmin/apache.conf
+    line: "    AllowOverride All"
+    state: present
+    insertafter: "DirectoryIndex index.php"
+- name: adding line in configuration
+  lineinfile:
+    path: /etc/phpmyadmin/config.inc.php
+    line: "$cfg['SendErrorReports'] = 'never';"
+
+- name: creating require directory
+  file:
+    path: /usr/share/phpmyadmin/
+    state: directory
+
+- name: creating .htaccess file
+  file:
+    path: /usr/share/phpmyadmin/.htaccess
+    state: touch
+
+- name: Adding .htaccess file 
+  blockinfile:
+    path: /usr/share/phpmyadmin/.htaccess
+    block: |
+      AuthType Basic
+      AuthName "Restricted Files"
+      AuthUserFile /etc/phpmyadmin/.htpasswd
+      Require valid-user  
+- name: install dependencies
+  shell: python3 -m pip install passlib
+
+# Generating .htaccess password
+- name: Add a user to a password file and ensure permissions are set
+  htpasswd:
+    path: /etc/phpmyadmin/.htpasswd
+    name: "{{ ht_user }}"
+    password: "{{ ht_password }}"
+    owner: root
+    group: www-data
+    mode: 0640 
+
+- name: enable rewrite module
+  shell: a2enmod rewrite
+ 
+# UFW Configuration
+- name: "UFW - Allow HTTP on port {{ http_port }}"
+  ufw:
+    rule: allow
+    port: "{{ http_port }}"
+    proto: tcp
+
+- name: Reload Apache
+  service:
+    name: apache2
+    state: restarted  
+- name: Restart the MySQL service
+  service:
+    name: mysql
+    state: restarted       

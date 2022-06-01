@@ -1,0 +1,39 @@
+---
+#- name: Installing Webserver required Packages
+#  apt:
+#    name: apache2
+#    update_cache: yes
+#    state: latest
+- debug: 
+    msg: " Starting Webserver Configuration !! "
+
+#- name: Create document root for your website.
+#  file:
+#    path: "/var/www/{{ http_host }}"
+#    state: directory
+#    mode: '0755'
+
+- name: Set up Apache virtualhost
+  template:
+    src: "apache.conf.j2"
+    dest: "/etc/apache2/sites-available/000-default.conf"
+#    dest: "/etc/apache2/sites-available/{{ http_conf }}"
+
+- name: Enable new site configuration
+  shell: /usr/sbin/a2ensite 000-default.conf
+
+#- name: Disable default Apache site
+#  shell: /usr/sbin/a2dissite 000-default.conf
+#  when: disable_default
+#- debug:
+#    msg: "WARNING!! Apache2 default configuration file '000-default.conf' is disabled now."
+
+- name: Adding sample data in document  root
+  shell: echo "Welcome to the server configured with Ansible!!" > /var/www/html/index.html
+
+
+- name: Reload Apache for setting up new configuration rules.
+  service: 
+    name: apache2
+    state: restarted
+    enabled: true

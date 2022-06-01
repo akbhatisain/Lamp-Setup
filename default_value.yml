@@ -1,0 +1,37 @@
+---
+default_mysql_root_password: root@123
+default_mysql_user_login: admin
+default_mysql_user_password: admin@123
+default_mysql_port: 3306
+mysql_version: 8.0
+
+#app_user: "sammy"
+
+# type your domain name here
+http_host: "example.com"
+
+# type your configuration file name
+http_conf: "example.com.conf"
+
+# webserver port which you prefer 
+http_port: "80"
+
+disable_default: true
+
+# Override if needed. This is set platform-specific in the vars dir if not set.
+phpmyadmin_config_file: /etc/phpmyadmin/config.inc.php
+phpmyadmin_mysql_host: localhost
+phpmyadmin_mysql_port: "3306"
+
+
+#phpmyadmin_mysql_socket: ""
+phpmyadmin_mysql_connect_type: tcp
+phpmyadmin_mysql_user: "{{ default_mysql_user_login }}"
+phpmyadmin_mysql_password: "{{ default_mysql_user_password }}"
+
+##Secure PhpMyAdmin
+# define .htaccess user and password 
+
+ht_user: admin
+ht_password: admin@1234
+

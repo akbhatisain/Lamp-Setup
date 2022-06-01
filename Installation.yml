@@ -1,0 +1,96 @@
+---
+# Adding all the require Repository and keys
+- shell: echo "Are you Ready!! Server Setup Automatic Deployment started"
+
+- name: Adding MySQL repository 
+  apt_key: url=http://repo.mysql.com/RPM-GPG-KEY-mysql state=present
+  become: true
+
+- name: Adding require repository keys
+  shell: apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 467B942D3A79BD29
+
+- name: Adding mysql sources.list deb url
+  lineinfile:
+    dest: /etc/apt/sources.list
+    line: "deb http://repo.mysql.com/apt/ubuntu/ {{ ansible_distribution_release }} mysql-{{ mysql_version }}"
+  become: true
+
+- name: Adding mysql sources.list deb-src url
+  lineinfile:
+    dest: /etc/apt/sources.list
+    line: "deb-src http://repo.mysql.com/apt/ubuntu/ {{ ansible_distribution_release }} mysql-{{ mysql_version }}"
+  become: true
+
+
+# Setup Repository for PHP version
+- name: setup repo  for php package
+  shell: apt update -y && apt install software-properties-common -y 
+- shell: add-apt-repository ppa:ondrej/php -y
+- shell: echo " All the require repositories are installed :) "
+
+#######################################################################
+
+- name: Updating apt cache
+  apt:
+    update_cache: yes
+  become: true
+
+# Clean up system before setup
+#    - shell: apt-get remove -y php* --purge
+
+######################################################################
+
+# installing some requiremnets
+- name: install pip3
+  apt: name=python3-pip state=present
+ 
+- name: Make sure pymysql is present
+  become: true # needed if the other tasks are not played as root
+  pip:
+    name: pymysql
+    state: present
+
+- name: Installing Webserver required Packages
+  apt: 
+    name: apache2 
+    update_cache: yes 
+    state: latest      
+
+- name: Installing MySQL require packages
+  apt: 
+    name: "{{ item }}" 
+    force: yes
+  with_items:
+    - python3-mysqldb
+    - mysql-server
+  become: true
+
+
+# Installing Required PHP 8.1 versions
+- name: Installing PHP 8.1 and dependencies
+  apt:
+    name: "{{ item }}"
+    state: latest
+  with_items:
+    - php8.1
+    - php8.1-cli 
+    - php8.1-common 
+    - php8.1-mysql 
+    - php8.1-zip 
+    - php8.1-gd 
+    - php8.1-mbstring 
+    - php8.1-curl 
+    - php8.1-xml 
+    - php8.1-bcmath
+
+#######################################################################
+
+# Installing phpmyadmin packages
+- name: Install phpmyadmin Packages
+  apt:
+    name: phpmyadmin
+    update_cache: yes
+    state: latest
+
+#########################################################################
+- shell: echo " All defined packages are installed; Starting configuration in few momment :) "

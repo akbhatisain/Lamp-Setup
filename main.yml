@@ -1,0 +1,27 @@
+---
+- name: Starting Lamp Server Setup in Ubuntu
+  hosts: ubuntu
+  become: true
+  ignore_errors: yes
+  vars_files:
+    - vari.yml
+  tasks:
+    - name: Adding intallation playbooks
+      include_tasks: Installation.yml
+   
+    - name: Adding Os configuration playbooks
+      include_tasks: webserver.yml
+    
+      #    - name: Importing database Role.
+      #import_role:
+      #  - amit-mysql5.7
+    - name: Adding database confguration playbooks
+      include_tasks: mysql.yml
+    
+    - name: Adding phpmyadmin configuration playbooks
+      include_tasks: phpmyadmin.yml
+  #handlers:
+  #  - name: Reload Apache
+  #    service:
+  #      name: apache2 
+  #      state: restarted          
